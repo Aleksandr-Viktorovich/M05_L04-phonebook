@@ -131,6 +131,7 @@ const data = [
           <input class="form-input" name="phone" type="number" required>
         </label>
       </div>
+
     `);
 
     const buttonGroup = createButtonsGroup([
@@ -143,6 +144,12 @@ const data = [
         className: 'btn btn-danger',
         type: 'reset',
         text: 'Отмена',
+      },
+      // 3
+      {
+        className: 'btn close',
+        type: 'button',
+        text: '',
       },
     ]);
 
@@ -168,7 +175,6 @@ const data = [
 
   const createCopyright = title => {
     const p = document.createElement('p');
-    // p.classList.add('');
     p.textContent = `Все права защищены. ©${title}!`;
 
     return p;
@@ -189,6 +195,11 @@ const data = [
        type: 'button',
        text: 'Удалить',
      },
+     // {
+     //   className: 'btn close',
+     //   type: 'close',
+     //   text: '',
+     // },
    ]);
    const table = createTable();
    const form = createForm();
@@ -201,13 +212,21 @@ const data = [
    app.append(header, main, footer);
 
    return {
-     list: table.tbody
+     list: table.tbody,
+     logo,
+     btnAdd: buttonGroup.btns[0],
+     formOverlay: form.overlay,
+     form: form.form,
+     // 2
+     btnClose: buttonGroup.btns[2],
    };
  };
 
   const createRow = ({name: firstName, surname, phone}) => {
 
     const tr = document.createElement('tr');
+
+    const btnEdit = document.createElement('button');
 
     const tdDel = document.createElement('td');
     tdDel.classList.add('delete');
@@ -217,14 +236,18 @@ const data = [
 
     const tdName = document.createElement('td');
     tdName.textContent = firstName;
+    btnEdit.classList.add('btn-edit');
+    tdName.prepend(btnEdit);
     const tdSurname = document.createElement('td');
     tdSurname.textContent = surname;
     const tdPhone = document.createElement('td');
     const phoneLink = document.createElement('a');
     phoneLink.href = `tel:${phone}`;
     phoneLink.textContent = phone;
+    tr.phoneLink = phoneLink;
 
     tdPhone.append(phoneLink);
+    tdPhone.append(btnEdit);
     tr.append(tdDel, tdName, tdSurname, tdPhone);
 
     return tr;
@@ -233,15 +256,59 @@ const data = [
   const renderContacts = (elem, data) => {
     const allRow = data.map(createRow);
     elem.append(...allRow);
-  }
+    return allRow;
+  };
+
+  const hoverRow = (allRow, logo) => {
+    const text = logo.textContent;
+    allRow.forEach(contact => {
+      contact.addEventListener('mouseenter', () => {
+        logo.textContent = contact.phoneLink.textContent;
+      });
+      contact.addEventListener('mouseleave', () => {
+        logo.textContent = text;
+      });
+    });
+  };
 
   const init = (selectorApp, title) => {
     const app = document.querySelector(selectorApp);
     const phoneBook = renderPhoneBook(app, title);
 
-    const {list} = phoneBook;
+    const {list, logo, btnAdd, formOverlay, form, btnClose} = phoneBook;
 
-    renderContacts(list, data);
+    const allRow = renderContacts(list, data);
+
+    hoverRow(allRow, logo);
+
+    btnAdd.addEventListener('click', () => {
+        formOverlay.classList.add('is-visible');
+    });
+
+    form.addEventListener('click', event => {
+      event.stopPropagation();
+    });
+
+    formOverlay.addEventListener('click', () => {
+      formOverlay.classList.remove('is-visible');
+    });
+    // 1
+    btnClose.addEventListener('click', () => {
+      formOverlay.classList.remove('is-visible');
+    });
+
+    document.addEventListener('touchstart', (e) => {
+
+    });
+
+    document.addEventListener('touchmove', (e) => {
+
+    });
+
+    document.addEventListener('touchend', (e) => {
+
+    });
+
   };
 
   window.phoneBookInit = init;
