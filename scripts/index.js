@@ -23,6 +23,10 @@ const data = [
   },
 ];
 
+// data.sort((x, y) => x.name.localeCompare(y.name))
+
+
+
 {
   const createContainer = () => {
     const container = document.createElement('div');
@@ -100,6 +104,9 @@ const data = [
 
     table.append(thead, tbody);
     table.tbody = tbody;
+    table.thead = thead;
+
+
 
     return table;
   };
@@ -198,17 +205,19 @@ const data = [
    const copyright = createCopyright(title);
 
    header.headerContainer.append(logo);
-   main.mainContainer.append(buttonGroup.btnWrapper, table, form.overlay);
+   main.mainContainer.append(buttonGroup.btnWrapper, table, form.overlay,);
    footer.footerContainer.append(copyright);
    app.append(header, main, footer);
 
    return {
      list: table.tbody,
+     listSort:table.thead,
      logo,
      btnAdd: buttonGroup.btns[0],
      btnDel: buttonGroup.btns[1],
      formOverlay: form.overlay,
      form: form.form,
+
    };
  };
 
@@ -265,7 +274,7 @@ const data = [
     const app = document.querySelector(selectorApp);
     const phoneBook = renderPhoneBook(app, title);
 
-    const {list, logo, btnAdd, formOverlay, form, btnDel} = phoneBook;
+    const {list, logo, btnAdd, formOverlay, form, btnDel, listSort} = phoneBook;
 
     const allRow = renderContacts(list, data);
 
@@ -293,6 +302,14 @@ const data = [
       if(target.closest('.del-icon')) {
         target.closest('.contact').remove();
       }
+    });
+
+    listSort.addEventListener('click', e => {
+      const target = e.target;
+      if (target.closest('.nameTarget')) {
+        data.sort((x, y) => x.name.localeCompare(y.name))
+      }
+      console.log(target);
     });
 
     document.addEventListener('touchstart', (e) => {
