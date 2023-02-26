@@ -23,10 +23,6 @@ const data = [
   },
 ];
 
-// data.sort((x, y) => x.name.localeCompare(y.name))
-
-
-
 {
   const createContainer = () => {
     const container = document.createElement('div');
@@ -98,16 +94,10 @@ const data = [
       </tr>
     `);
 
-
-
     const tbody = document.createElement('tbody');
-
     table.append(thead, tbody);
     table.tbody = tbody;
     table.thead = thead;
-
-
-
     return table;
   };
 
@@ -140,7 +130,6 @@ const data = [
           <input class="form-input" name="phone" type="number" required>
         </label>
       </div>
-
     `);
 
     const buttonGroup = createButtonsGroup([
@@ -172,14 +161,12 @@ const data = [
     const footerContainer = createContainer();
     footer.append(footerContainer);
     footer.footerContainer = footerContainer;
-
     return footer;
   };
 
   const createCopyright = title => {
     const p = document.createElement('p');
     p.textContent = `Все права защищены. ©${title}!`;
-
     return p;
   };
 
@@ -248,14 +235,15 @@ const data = [
     tdPhone.append(phoneLink);
     tdPhone.append(btnEdit);
     tr.append(tdDel, tdName, tdSurname, tdPhone);
-
     return tr;
   };
 
+
+
   const renderContacts = (elem, data) => {
     const allRow = data.map(createRow);
-    elem.append(...allRow);
-    return allRow;
+    elem.append(...allRow)
+    return allRow.sort((x, y) => ((x.innerText < y.innerText) ? - 1 : 1));
   };
 
   const hoverRow = (allRow, logo) => {
@@ -270,6 +258,13 @@ const data = [
     });
   };
 
+  //Функция сортировки
+  const creatSortRow = (row, data) => {
+    const sort = data.map(createRow);
+    return sort.sort((x, y) => ((x.innerText < y.innerText) ? - 1 : 1))
+  }
+
+  //Функция запуска
   const init = (selectorApp, title) => {
     const app = document.querySelector(selectorApp);
     const phoneBook = renderPhoneBook(app, title);
@@ -277,8 +272,10 @@ const data = [
     const {list, logo, btnAdd, formOverlay, form, btnDel, listSort} = phoneBook;
 
     const allRow = renderContacts(list, data);
-
     hoverRow(allRow, logo);
+
+    //Получение функции сортировки
+    const sort = creatSortRow(list, data, listSort)
 
     btnAdd.addEventListener('click', () => {
         formOverlay.classList.add('is-visible');
@@ -304,12 +301,9 @@ const data = [
       }
     });
 
-    listSort.addEventListener('click', e => {
-      const target = e.target;
-      if (target.closest('.nameTarget')) {
-        data.sort((x, y) => x.name.localeCompare(y.name))
-      }
-      console.log(target);
+    //Сортировка по событию "клик"
+    listSort.addEventListener('click', () => {
+      list.replaceChildren(...sort);
     });
 
     document.addEventListener('touchstart', (e) => {
