@@ -89,7 +89,7 @@ const data = [
       <tr>
          <th class="delete">Удалить</th>
          <th class="nameTarget">Имя</th>
-         <th class="nameTarget">Фамилия</th>
+         <th class="surnameTarget">Фамилия</th>
          <th>Телефон</th>
       </tr>
     `);
@@ -204,7 +204,6 @@ const data = [
      btnDel: buttonGroup.btns[1],
      formOverlay: form.overlay,
      form: form.form,
-
    };
  };
 
@@ -243,7 +242,7 @@ const data = [
   const renderContacts = (elem, data) => {
     const allRow = data.map(createRow);
     elem.append(...allRow)
-    return allRow.sort((x, y) => ((x.innerText < y.innerText) ? - 1 : 1));
+    return allRow.sort((x, y) => ((x.children.innerText < y.children.innerText) ? - 1 : 1));
   };
 
   const hoverRow = (allRow, logo) => {
@@ -258,24 +257,15 @@ const data = [
     });
   };
 
-  //Функция сортировки
-  const creatSortRow = (row, data) => {
-    const sort = data.map(createRow);
-    return sort.sort((x, y) => ((x.innerText < y.innerText) ? - 1 : 1))
-  }
-
   //Функция запуска
   const init = (selectorApp, title) => {
     const app = document.querySelector(selectorApp);
     const phoneBook = renderPhoneBook(app, title);
 
-    const {list, logo, btnAdd, formOverlay, form, btnDel, listSort} = phoneBook;
+    const {list, logo, btnAdd, formOverlay, form, btnDel, listSort, headItem} = phoneBook;
 
     const allRow = renderContacts(list, data);
     hoverRow(allRow, logo);
-
-    //Получение функции сортировки
-    const sort = creatSortRow(list, data, listSort)
 
     btnAdd.addEventListener('click', () => {
         formOverlay.classList.add('is-visible');
@@ -294,6 +284,8 @@ const data = [
       });
     });
 
+
+
     list.addEventListener('click', e => {
       const target = e.target;
       if(target.closest('.del-icon')) {
@@ -301,10 +293,23 @@ const data = [
       }
     });
 
-    //Сортировка по событию "клик"
-    listSort.addEventListener('click', () => {
-      list.replaceChildren(...sort);
-    });
+    //получаем таргет элемента, на основании которого будет сортироватиься список (имя/фамилия)
+    let position;
+
+    //Фуекция сортировки
+    const sortBody = (position) => {
+      return allRow.sort((x, y) => ((x.children[position].innerText < y.children[position].innerText) ? - 1 : 1))
+    }
+
+    //Функция сортировки по клику
+    listSort.addEventListener('click', e => {
+      const target = e.target;
+      const headTarget = listSort.children[0].children;
+      if (headTarget) {
+        position = [...headTarget].findIndex(elem => elem === target);
+        list.replaceChildren(...sortBody(position));
+      }
+      });
 
     document.addEventListener('touchstart', (e) => {
 
