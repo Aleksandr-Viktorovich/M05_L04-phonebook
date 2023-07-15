@@ -23,6 +23,13 @@ const data = [
   },
 ];
 
+//4.1 Функция для добавления новых контактов
+const addContactData = (contact) => {
+  data.push(contact);
+  console.log(data)
+};
+
+
 {
   const createContainer = () => {
     const container = document.createElement('div');
@@ -187,12 +194,12 @@ const data = [
      },
    ]);
    const table = createTable();
-   const form = createForm();
+   const {form, overlay} = createForm();
    const footer = createFooter();
    const copyright = createCopyright(title);
 
    header.headerContainer.append(logo);
-   main.mainContainer.append(buttonGroup.btnWrapper, table, form.overlay,);
+   main.mainContainer.append(buttonGroup.btnWrapper, table, overlay,);
    footer.footerContainer.append(copyright);
    app.append(header, main, footer);
 
@@ -202,8 +209,8 @@ const data = [
      logo,
      btnAdd: buttonGroup.btns[0],
      btnDel: buttonGroup.btns[1],
-     formOverlay: form.overlay,
-     form: form.form,
+     formOverlay: overlay,
+     form: form,
    };
  };
 
@@ -237,8 +244,6 @@ const data = [
     return tr;
   };
 
-
-
   const renderContacts = (elem, data) => {
     const allRow = data.map(createRow);
     elem.append(...allRow)
@@ -257,34 +262,43 @@ const data = [
     });
   };
 
-  //Функция запуска
-  const init = (selectorApp, title) => {
-    const app = document.querySelector(selectorApp);
-    const phoneBook = renderPhoneBook(app, title);
+  //1.1 Работа с модальной формой
+  const modalControl = (btnAdd, formOverlay) => {
 
-    const {list, logo, btnAdd, formOverlay, form, btnDel, listSort, headItem} = phoneBook;
+    //1.2 Фуекция открытия модального окна
+    const openModal = () => {
+      formOverlay.classList.add('is-visible');
+    };
 
-    const allRow = renderContacts(list, data);
-    hoverRow(allRow, logo);
+    // 1.5 Фуекция закрытия модального окна
+    const closeModal = () => {
+      formOverlay.classList.remove('is-visible');
+    }
 
-    btnAdd.addEventListener('click', () => {
-        formOverlay.classList.add('is-visible');
-    });
+    //1.3 Событие "клик" на открытие модального окна
+    btnAdd.addEventListener('click', openModal);//1.4 Вызов функции на открытие
 
+    //1.6 Событие "клик" на закрытие модального окна
     formOverlay.addEventListener('click', e => {
       const target = e.target;
       if (target === formOverlay || target.classList.contains('close')) {
-        formOverlay.classList.remove('is-visible');
+        closeModal();//1.7 Вызов функции на закрытие
       }
     });
 
+    return {
+      closeModal,//1.8 Возвращаем закрытие окна в виде объекта
+    }
+  };
+
+
+  //2.1 Фуекция для удаления данных в таблице
+  const deleteControl = (btnDel, list) => {
     btnDel.addEventListener('click', () => {
       document.querySelectorAll('.delete').forEach(del => {
         del.classList.toggle('is-visible');
       });
     });
-
-
 
     list.addEventListener('click', e => {
       const target = e.target;
@@ -292,24 +306,65 @@ const data = [
         target.closest('.contact').remove();
       }
     });
+  };
 
-    //получаем таргет элемента, на основании которого будет сортироватиься список (имя/фамилия)
-    let position;
+  //5.1 Функция добавления контактов на страницу
+  const addContactPage = (contact, list) => {
+    list.append(createRow(contact));
+  };
 
-    //Фуекция сортировки
-    const sortBody = (position) => {
-      return allRow.sort((x, y) => ((x.children[position].innerText < y.children[position].innerText) ? - 1 : 1))
-    }
 
-    //Функция сортировки по клику
-    listSort.addEventListener('click', e => {
-      const target = e.target;
-      const headTarget = listSort.children[0].children;
-      if (headTarget) {
-        position = [...headTarget].findIndex(elem => elem === target);
-        list.replaceChildren(...sortBody(position));
-      }
+  //3.1 Функция обработки событий на форме
+  const formControl = (form, list, closeModal) => {
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const newContact = Object.fromEntries(formData);
+      console.log(newContact)
+
+      addContactPage(newContact, list)//5.2 Вызов функции добавления контактов на страницу
+      addContactData(newContact);//4.2 Вызов функции добавления контактов
+      form.reset();
+      closeModal();
+    });
+  };
+
+  //Функция запуска
+  const init = (selectorApp, title) => {
+    const app = document.querySelector(selectorApp);
+
+
+    const {list, logo, btnAdd, formOverlay, form, btnDel, listSort} = renderPhoneBook(app, title);
+
+    const allRow = renderContacts(list, data);
+    const {closeModal} = modalControl(btnAdd, formOverlay);//1.9 Вызов функции работы с модальным окном
+
+    hoverRow(allRow, logo);
+    deleteControl(btnDel, list);//2.2 Вызов функции удаления
+    formControl(form, list, closeModal); //3.2 Вызов функции обработки событий на форме
+
+
+
+    const showSort = () => {
+      //получаем таргет элемента, на основании которого будет сортироватиься список (имя/фамилия)
+      let position;
+
+      //Фуекция сортировки
+      const sortBody = (position) => {
+        return allRow.sort((x, y) => ((x.children[position].innerText < y.children[position].innerText) ? -1 : 1));
+      };
+
+      //Функция сортировки по клику
+      listSort.addEventListener('click', e => {
+        const target = e.target;
+        //Получаем элемент клика по индексу
+        const headTarget = listSort.children[0].children;
+        if (headTarget) {
+          position = [...headTarget].findIndex(elem => elem === target);
+          list.replaceChildren(...sortBody(position));
+        }
       });
+    }
 
     document.addEventListener('touchstart', (e) => {
 
