@@ -1,32 +1,35 @@
 'use strict';
 
-const data = [
-  {
-    name: 'Иван',
-    surname: 'Петров',
-    phone: '+79514545454',
-  },
-  {
-    name: 'Игорь',
-    surname: 'Семёнов',
-    phone: '+79999999999',
-  },
-  {
-    name: 'Семён',
-    surname: 'Иванов',
-    phone: '+79800252525',
-  },
-  {
-    name: 'Мария',
-    surname: 'Попова',
-    phone: '+79876543210',
-  },
-];
+const getStorage = (key) => {
+  let arrData = localStorage.getItem(key);
+  if (arrData !== null) {
+    return JSON.parse(arrData);
+  }
+  return [];
+}
 
-//4.1 Функция для добавления новых контактов
+
+const setStorage = (key, objData) => {
+  let newArr = getStorage(key);
+  newArr.push(objData);
+  localStorage.setItem(key, JSON.stringify(newArr));
+}
+
+
+const removeStorage = (phoneNum, key) => {
+  const arrObj = getStorage(key);
+  localStorage.removeItem('key');
+  arrObj.forEach(objData => {
+    if (objData.phone === phoneNum) return;
+    setStorage(key, objData);
+  });
+};
+
+
+// 4.1 Функция для добавления новых контактов
 const addContactData = (contact) => {
-  data.push(contact);
-  console.log(data)
+  // data.push(contact);
+  // setStorage('key', contact);
 };
 
 
@@ -285,7 +288,6 @@ const addContactData = (contact) => {
         closeModal();//1.7 Вызов функции на закрытие
       }
     });
-
     return {
       closeModal,//1.8 Возвращаем закрытие окна в виде объекта
     }
@@ -303,7 +305,10 @@ const addContactData = (contact) => {
     list.addEventListener('click', e => {
       const target = e.target;
       if(target.closest('.del-icon')) {
-        target.closest('.contact').remove();
+        const contactDel = target.closest('.contact');
+        const phoneItem = contactDel.querySelector('a').textContent;
+        removeStorage(phoneItem,'key');
+        contactDel.remove();
       }
     });
   };
@@ -320,10 +325,11 @@ const addContactData = (contact) => {
       e.preventDefault();
       const formData = new FormData(e.target);
       const newContact = Object.fromEntries(formData);
-      console.log(newContact)
 
       addContactPage(newContact, list)//5.2 Вызов функции добавления контактов на страницу
-      addContactData(newContact);//4.2 Вызов функции добавления контактов
+
+      setStorage('key', newContact);//4.2 Вызов функции добавления контактов
+      // setStorage(newContact)
       form.reset();
       closeModal();
     });
@@ -332,6 +338,7 @@ const addContactData = (contact) => {
   //Функция запуска
   const init = (selectorApp, title) => {
     const app = document.querySelector(selectorApp);
+    const data = getStorage('key');
 
 
     const {list, logo, btnAdd, formOverlay, form, btnDel, listSort} = renderPhoneBook(app, title);
@@ -342,7 +349,6 @@ const addContactData = (contact) => {
     hoverRow(allRow, logo);
     deleteControl(btnDel, list);//2.2 Вызов функции удаления
     formControl(form, list, closeModal); //3.2 Вызов функции обработки событий на форме
-
 
 
     const showSort = () => {
@@ -364,7 +370,8 @@ const addContactData = (contact) => {
           list.replaceChildren(...sortBody(position));
         }
       });
-    }
+    };
+    showSort()
 
     document.addEventListener('touchstart', (e) => {
 
